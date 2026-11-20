@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>総合問題 訂正情報｜三度の飯よりホットサンド</title>
+<meta name="description" content="一橋祭 SDS模擬店「三度の飯よりホットサンド」で配布した総合問題（厳選1年分セット）の訂正情報です。">
+<style>
+  :root {
+    --bg: #fffaf3;
+    --card: #ffffff;
+    --text: #2b2420;
+    --muted: #7a6a5e;
+    --accent: #d9822b;
+    --line: #eadfd2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    line-height: 1.8;
+    font-size: 16px;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 28px 20px 22px;
+  }
+  header .inner, main, footer { max-width: 720px; margin: 0 auto; }
+  header p { margin: 0; font-size: 13px; opacity: .9; }
+  header h1 { margin: 4px 0 0; font-size: 22px; line-height: 1.4; }
+  main { padding: 20px; }
+  #content h2 {
+    font-size: 18px;
+    border-left: 5px solid var(--accent);
+    padding-left: 10px;
+    margin: 8px 0 16px;
+  }
+  #content h3 {
+    font-size: 16px;
+    margin: 24px 0 0;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px 10px 0 0;
+    border-bottom: none;
+  }
+  #content h3 + ul {
+    margin: 0;
+    padding: 6px 14px 12px 32px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+  }
+  #content li { margin: 4px 0; }
+  #content mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; }
+  #content code { background: #f3ebe1; padding: 1px 5px; border-radius: 4px; }
+  .status { color: var(--muted); }
+  footer {
+    padding: 8px 20px 32px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+</style>
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['\\(', '\\)']],
+      displayMath: [['\\[', '\\]']]
+    },
+    startup: { typeset: false }
+  };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="inner">
+    <p>一橋祭 SDS模擬店「三度の飯よりホットサンド」</p>
+    <h1>総合問題（厳選1年分セット）訂正情報</h1>
+  </div>
+</header>
+<main>
+  <div id="content"><p class="status">読み込み中…</p></div>
+</main>
+<footer>
+  訂正があった場合はこのページに随時掲載します。ご不便をおかけして申し訳ありません。
+</footer>
+<script>
+  // Markdown を変換する前に数式部分を退避し、変換後に MathJax 用の区切りで戻す
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function render(md) {
+    md = md.replace(/<!--[\s\S]*?-->/g, '');
+    const math = [];
+    const keep = (tex, display) => {
+      math.push(display ? '\\[' + tex + '\\]' : '\\(' + tex + '\\)');
+      return '@@MATH' + (math.length - 1) + '@@';
+    };
+    md = md
+      .replace(/\$\$([\s\S]+?)\$\$/g, (_, t) => keep(t, true))
+      .replace(/\\\[([\s\S]+?)\\\]/g, (_, t) => keep(t, true))
+      .replace(/\\\(([\s\S]+?)\\\)/g, (_, t) => keep(t, false))
+      .replace(/(^|[^\\])\$([^$\n]+?)\$/g, (_, pre, t) => pre + keep(t, false))
+      .replace(/\\\$/g, '$');
+    let html = marked.parse(md);
+    html = html.replace(/@@MATH(\d+)@@/g, (_, i) => escapeHtml(math[+i]));
+    return html;
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    const el = document.getElementById('content');
+    try {
+      const res = await fetch('errata.md', { cache: 'no-cache' });
+      if (!res.ok) throw new Error(res.status);
+      el.innerHTML = render(await res.text());
+      await MathJax.startup.promise;
+      await MathJax.typesetPromise([el]);
+    } catch (e) {
+      el.innerHTML = '<p class="status">訂正情報を読み込めませんでした。時間をおいて再読み込みしてください。</p>';
+    }
+  });
+</script>
+</body>
+</html>
